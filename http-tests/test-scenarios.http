@@ -1,0 +1,93 @@
+### Create a new user
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "email": "user1@example.com"
+}
+
+### List all users (-> shows the newly created user)
+GET http://localhost:8080/users
+
+### Create another user
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "username": "user2",
+  "email": "user2@example.com"
+}
+
+### List all users again (-> shows two users)
+GET http://localhost:8080/users
+
+### User 1 creates a new poll
+POST http://localhost:8080/polls
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "question": "Pineapple on pizza?",
+  "validUntil": "2028-01-01T00:00:00Z"
+}
+
+### List polls (-> shows the new poll)
+GET http://localhost:8080/polls
+
+### Create vote option for the new poll
+POST http://localhost:8080/voteoptions
+Content-Type: application/json
+
+{
+  "caption": "Yes",
+  "presentationOrder": 1
+}
+
+### Create vote option for the new poll
+POST http://localhost:8080/voteoptions
+Content-Type: application/json
+
+{
+  "caption": "No",
+  "presentationOrder": 2
+}
+
+### List all vote options (optional)
+GET http://localhost:8080/voteoptions
+
+### User 2 votes on the poll
+POST http://localhost:8080/votes
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "pollId": 1,
+  "voteOptionId": 1
+}
+
+### User 2 changes his vote
+PUT http://localhost:8080/votes/1
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "pollId": 1,
+  "voteOptionId": 2
+}
+
+### List votes (-> shows the most recent vote for User 2)
+GET http://localhost:8080/votes
+
+### Delete the one poll
+DELETE http://localhost:8080/votes/1
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "pollId": 1,
+  "voteOptionId": 2
+}
+
+### List votes (-> empty)
+GET http://localhost:8080/votes

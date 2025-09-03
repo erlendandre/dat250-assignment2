@@ -1,4 +1,4 @@
-package no.hvl.dat250.assignment1;
+package no.hvl.dat250.assignment2;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
