@@ -15,7 +15,8 @@ import org.springframework.web.client.RestClient;
 
 import no.hvl.dat250.assignment2.model.User;;
 
-@SpringBootTest
+// @SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class Assignment2ApplicationTests {
 
 	private static RestClient restClient;
@@ -75,7 +76,8 @@ class Assignment2ApplicationTests {
         assertEquals("user2", created.getUsername());
 	}
 
-	// @Test
+	@Test
+	@Order(4)
 	void listUsers2() {
         List<User> users = restClient.get()
             .uri("http://localhost:8080/users")
