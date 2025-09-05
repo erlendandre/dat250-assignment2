@@ -6,7 +6,7 @@ plugins {
 
 group = "no.hvl.dat250"
 version = "0.0.1-SNAPSHOT"
-description = "DAT250 Assignment 1 demo project for Spring Boot"
+description = "DAT250 Assignment 2 demo project for Spring Boot"
 
 java {
 	toolchain {
@@ -20,8 +20,13 @@ repositories {
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
+
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.6.0")
+	
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	
 }
 
 tasks.withType<Test> {
