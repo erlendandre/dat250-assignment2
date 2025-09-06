@@ -27,8 +27,6 @@ public class PollManager {
     // In-memory storage for CRUD
     private final Map<Long, User> users = new HashMap<>();
     private final Map<Long, Poll> polls = new HashMap<>();
-    // private final Map<Long, Vote> votes = new HashMap<>();
-    // private final Map<Long, VoteOption> voteOptions = new HashMap<>();
 
     // Generates unique IDs for each entity when adding new objects
     private final AtomicLong usersIdSeq = new AtomicLong();
