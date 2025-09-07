@@ -29,11 +29,10 @@
 - Users can vote on a poll, change their vote, and retrieve votes for a poll.
 - Votes are automatically removed when the poll is deleted.
 
----
 
 ## 2. Test Scenarios
 
-Following a test-driven approach, the following scenario is fully implemented and tested:
+The following scenario is fully implemented and tested:
 
 1. Create a new user
 2. Confirmation of user and number of users (1)
@@ -41,14 +40,17 @@ Following a test-driven approach, the following scenario is fully implemented an
 4. Confirmation of user and number of users (2)
 5. User 1 creates a new poll (and poll options) and invites user 2 to vote
 
-First a "bad path" is tested:
+
+First a "bad path" was tested:
 
 7. User 1 tries to vote on the poll (only user 2 has been invited)
 8. User 2 tries to vote on a non-existing poll
 9. Try to invite user to a non-existing poll
 10. Try to invite user to public poll
 
-Then a "happy path" is tested:
+
+Then a "happy path" was tested:
+
 11. User 2 votes
 12. User 2 changes his vote
 13. Confirm the most recent vote for User 2
@@ -56,14 +58,12 @@ Then a "happy path" is tested:
 
 Implemented in `Assignment2ApplicationTests.java` and pass successfully.
 
----
 
 ## 3. Technical Issues Encountered
 
 - **Cross-test dependencies:** Tried to split the test scenarios into multiple test methods, which caused problems related to objects created in just one test (e.g. a user or poll) that was not accessible in the other tests. Solved by using one big test method that simulates the entire scenario from user creation to poll deletion, even though it might not be the best practice. Also added testing for "edge cases".
+- **Minimum two vote options:** Encountered 400 Bad Request error during testing when creating a poll without any vote options. This was caused by a constraint (@Size(min = 2)) on the options list in the Poll entity. To simplify testing and allow poll creation without predefining options, the constraint was removed. To be reinstated..
 
-
----
 
 ## 5. Notes
 
