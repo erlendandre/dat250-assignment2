@@ -40,6 +40,7 @@ class Assignment2ApplicationTests {
 		User user1 = new User();
         user1.setUsername("user1");
         user1.setEmail("user1@example.com");
+		user1.setPassword("password1");
 
         User created1 = restClient.post()
 				.uri(baseUrl + "/users")
@@ -65,6 +66,7 @@ class Assignment2ApplicationTests {
 		User user2 = new User();
         user2.setUsername("user2");
         user2.setEmail("user2@example.com");
+		user2.setPassword("password2");
 
         User created2 = restClient.post()
 				.uri(baseUrl + "/users")
