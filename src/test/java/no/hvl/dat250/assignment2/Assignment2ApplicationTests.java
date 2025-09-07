@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.time.Instant;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -22,21 +21,21 @@ import no.hvl.dat250.assignment2.model.VoteOption;;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class Assignment2ApplicationTests {
 
-	private RestClient restClient;
+	private final RestClient restClient = RestClient.create();
 		
 	@LocalServerPort
 	int port;
-	String baseUrl;
 
-	@BeforeEach
-	void setup() {
-		restClient = RestClient.create();
-		baseUrl = "http://localhost:" + port;
-	}
+	private String getBaseUrl() {
+        return "http://localhost:" + port;
+    }
 
     // User tests
 	@Test
 	void createUsers() {
+
+		String baseUrl = getBaseUrl();
+
 		// Create first user
 		User user1 = new User();
         user1.setUsername("user1");

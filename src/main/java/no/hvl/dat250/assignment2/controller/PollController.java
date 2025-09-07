@@ -102,7 +102,6 @@ public class PollController {
         return vote;
     }
 
-    // Oppdater en option
     @PutMapping("/{pollId}/options/{optionId}")
     public VoteOption updateOptionInPoll(@PathVariable Long pollId,
                                         @PathVariable Long optionId,
