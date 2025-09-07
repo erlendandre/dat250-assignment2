@@ -1,6 +1,6 @@
 # DAT250 Assignment 2 – REST API for Poll App
 
-**GitHub repository:** [https://github.com/erlendandre/dat250-assignment2](https://github.com/erlendandre/dat250-assignment2)
+[GitHub repository](https://github.com/erlendandre/dat250-assignment2)
 
 ---
 
@@ -10,12 +10,12 @@
 
 - **Endpoints:** `POST /users`, `GET /users`, `GET /users/{id}`, `PUT /users/{id}`, `DELETE /users/{id}`
 - Users can be created and retrieved dynamically.
-- Each user has a unique `id`, `username`, and `email`.
+- Each user has `id`, `username`, `email` and `password`.
 
 ### Poll Management
 
 - **Endpoints:** `POST /polls`, `GET /polls`, `GET /polls/{id}`, `PUT /polls/{id}`, `DELETE /polls/{id}`
-- Each poll has a question, expiration date, and the username of the creator.
+- Each poll has `id`, `question`, `publishedAt`, `lastUpdatedAt`, `validUntil`, `isPublic`, `invitedUserIds`, `votes` and the username of the creator.
 
 ### Vote Options
 
@@ -56,17 +56,17 @@ Then a "happy path" was tested:
 13. Confirm the most recent vote for User 2
 14. Confirm deleted poll returns 404
 
-Implemented in `Assignment2ApplicationTests.java` and pass successfully.
+
+Implemented in [`Assignment2ApplicationTests.java`](https://github.com/erlendandre/dat250-assignment2/blob/main/src/test/java/no/hvl/dat250/assignment2/Assignment2ApplicationTests.java) and pass successfully.
 
 
 ## 3. Technical Issues Encountered
 
 - **Cross-test dependencies:** Tried to split the test scenarios into multiple test methods, which caused problems related to objects created in just one test (e.g. a user or poll) that was not accessible in the other tests. Solved by using one big test method that simulates the entire scenario from user creation to poll deletion, even though it might not be the best practice. Also added testing for "edge cases".
-- **Minimum two vote options:** Encountered 400 Bad Request error during testing when creating a poll without any vote options. This was caused by a constraint (@Size(min = 2)) on the options list in the Poll entity. To simplify testing and allow poll creation without predefining options, the constraint was removed. To be reinstated..
+- **Minimum two vote options:** Encountered 400 Bad Request error during testing when creating a poll without any vote options. This was caused by a constraint (@Size(min = 2)) on the options list in the Poll entity. To simplify testing and allow poll creation without predefining options, the constraint was removed. To be fixed later..
+- **API documentation** still missing.. To be fixed later.
 
 
-## 5. Notes
+## 5. Extra
 
-- All tests are located in `src/test/java/no/hvl/dat250/assignment2/Assignment2ApplicationTests.java`.  
-- The application runs on a random port during tests (`@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)`), and URLs are dynamically constructed.  
 - Gradle is used for building and test automation, including a GitHub Actions workflow.
