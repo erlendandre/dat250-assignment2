@@ -2,7 +2,9 @@ package no.hvl.dat250.assignment2.model;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Poll {
     private Long id;
@@ -11,19 +13,23 @@ public class Poll {
     private Instant publishedAt;
     private Instant lastUpdatedAt;
     private Instant validUntil;
+    private boolean isPublic;
+    private Set<Long> invitedUserIds = new HashSet<>();
     private List<Vote> votes = new ArrayList<>();
+    
+    // @Size(min = 2, message = "Poll must have at least 2 vote options")
     private List<VoteOption> options = new ArrayList<>();
 
     public Poll() {}
 
-    public Poll(Long id, String username, String question, Instant publishedAt, Instant lastUpdatedAt, Instant validUntil) {
+    public Poll(Long id, String username, String question, Instant publishedAt, Instant lastUpdatedAt, Instant validUntil, boolean isPublic) {
         this.id = id;
         this.username = username;
         this.question = question;
         this.publishedAt = publishedAt;
         this.lastUpdatedAt = lastUpdatedAt;
         this.validUntil = validUntil;
-        
+        this.isPublic = isPublic;
     }
 
     public Long getId() {return id;}
@@ -43,6 +49,12 @@ public class Poll {
 
     public Instant getValidUntil() {return validUntil;}
     public void setValidUntil(Instant validUntil) {this.validUntil = validUntil;}
+
+    public boolean isPublic() { return isPublic; }
+    public void setPublic(boolean isPublic) { this.isPublic = isPublic; }
+
+    public Set<Long> getInvitedUserIds() { return invitedUserIds; }
+    public void setInvitedUserIds(Set<Long> invitedUserIds) { this.invitedUserIds = invitedUserIds; }
 
     public List<Vote> getVotes() {return votes;}
     public void setVotes(List<Vote> votes) {this.votes = votes;}

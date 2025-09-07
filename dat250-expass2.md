@@ -36,37 +36,37 @@
 Following a test-driven approach, the following scenario is fully implemented and tested:
 
 1. Create a new user
-2. List all users -> shows the newly created user
+2. Confirmation of user and number of users (1)
 3. Create another user
-4. List all users again -> shows two users
-5. User 1 creates a new poll
-6. List polls -> shows the new poll
-7. User 2 votes on the poll
-8. User 2 changes his vote
-9. List votes -> shows the most recent vote for User 2
-10. Delete the one poll
-11. List votes -> empty
+4. Confirmation of user and number of users (2)
+5. User 1 creates a new poll (and poll options) and invites user 2 to vote
 
-All scenarios are implemented in `Assignment2ApplicationTests.java` and pass successfully.
+First a "bad path" is tested:
+
+7. User 1 tries to vote on the poll (only user 2 has been invited)
+8. User 2 tries to vote on a non-existing poll
+9. Try to invite user to a non-existing poll
+10. Try to invite user to public poll
+
+Then a "happy path" is tested:
+11. User 2 votes
+12. User 2 changes his vote
+13. Confirm the most recent vote for User 2
+14. Confirm deleted poll returns 404
+
+Implemented in `Assignment2ApplicationTests.java` and pass successfully.
 
 ---
 
 ## 3. Technical Issues Encountered
 
-- **Cross-test dependencies:** Tried to split the "flow" into multiple test methods, which caused problems related to objects created in just one test (e.g., a user or poll) that was not accessible in the other tests. The solution was simply to use one comprehensive integration test that simulates the entire scenario from user creation to poll deletion, even though it might not be the best practice.
-- **Vote deletion:** Ensuring cascade deletion required attention to JPA mappings. Verified via integration tests.
+- **Cross-test dependencies:** Tried to split the test scenarios into multiple test methods, which caused problems related to objects created in just one test (e.g. a user or poll) that was not accessible in the other tests. Solved by using one big test method that simulates the entire scenario from user creation to poll deletion, even though it might not be the best practice. Also added testing for "edge cases".
 
----
-
-## 4. Pending Issues
-
-- OpenAPI documentation (`@Operation` annotations) was considered but deferred for simplicity.  
-- No authentication/authorization is implemented; all endpoints are open.
 
 ---
 
 ## 5. Notes
 
-- All tests are located in `src/test/kotlin/no/hvl/dat250/assignment2/Assignment2ApplicationTests.kt`.  
+- All tests are located in `src/test/java/no/hvl/dat250/assignment2/Assignment2ApplicationTests.java`.  
 - The application runs on a random port during tests (`@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)`), and URLs are dynamically constructed.  
 - Gradle is used for building and test automation, including a GitHub Actions workflow.

@@ -1,7 +1,6 @@
 package no.hvl.dat250.assignment2.service;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +53,15 @@ public class PollManager {
 
     public void removeUser(Long id) {users.remove(id);}
 
+    public boolean inviteUserToPoll(Long pollId, Long userId) {
+        Poll poll = polls.get(pollId);
+        if (poll == null || poll.isPublic()) {return false;}
+        if (!users.containsKey(userId)) {return false;}
+        poll.getInvitedUserIds().add(userId);
+        poll.setLastUpdatedAt(Instant.now());
+        return true;
+    }
+
 
     // Poll CRUD
     public Collection<Poll> getAllPolls() {return polls.values();}
@@ -77,27 +85,48 @@ public class PollManager {
         return updatedPoll;
     }
 
-    public void removePoll(Long id) {polls.remove(id);}
+    public boolean removePoll(Long id) {
+        return polls.remove(id) != null;
+    }
 
 
     // Vote CRUD
     public Collection<Vote> getVotesForPoll(Long pollId) {
         Poll poll = polls.get(pollId);
-        if (poll != null) {
-            return poll.getVotes();
-        } else {
-            return Collections.emptyList();
-        }
+        return (poll != null) ? poll.getVotes() : null;
     }
 
     public Vote addVoteToPoll(Long pollId, Vote vote) {
         Poll poll = polls.get(pollId);
-        if (poll == null) return null;
+        if (poll == null) {
+            return null; // Controller gir 404
+        }
+
+        Instant now = Instant.now();
+
+        if (poll.getPublishedAt() != null && now.isBefore(poll.getPublishedAt())) {
+            return null;
+        }
+
+        if (poll.getValidUntil() != null && now.isAfter(poll.getValidUntil())) {
+            return null;
+        }
+
+        if (!poll.isPublic()) {
+            if (vote.getUserId() == null || !poll.getInvitedUserIds().contains(vote.getUserId())) {
+                return null;
+            }
+
+            for (Vote existingVote : poll.getVotes()) {
+                if (vote.getUserId().equals(existingVote.getUserId())) {
+                    return null;
+                }
+            }
+        }
 
         long id = votesIdSeq.incrementAndGet();
         vote.setId(id);
         vote.setPollId(pollId);
-        Instant now = Instant.now();
         vote.setPublishedAt(now);
         vote.setLastUpdatedAt(now);
 
@@ -147,11 +176,7 @@ public class PollManager {
     // VoteOption CRUD
     public Collection<VoteOption> getOptionsForPoll(Long pollId) {
         Poll poll = polls.get(pollId);
-        if (poll != null) {
-            return poll.getOptions();
-        } else {
-            return Collections.emptyList();
-        }
+        return (poll != null) ? poll.getOptions() : null;
     }
 
     public VoteOption addOptionToPoll(Long pollId, VoteOption option) {
@@ -188,5 +213,4 @@ public class PollManager {
             poll.getOptions().removeIf(opt -> opt.getId().equals(optionId));
         }
     }
-
 }
