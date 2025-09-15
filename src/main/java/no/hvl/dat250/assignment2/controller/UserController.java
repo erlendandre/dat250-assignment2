@@ -52,7 +52,6 @@ public class UserController {
     // Create
     @PostMapping
     public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
-        // Sjekk om username eller email allerede finnes
         if (pollManager.userExists(user.getUsername(), user.getEmail())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }

@@ -6,9 +6,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class Poll {
     private Long id;
     private String username;
+
+    @NotBlank(message = "Poll question cannot be empty")
     private String question;
     private Instant publishedAt;
     private Instant lastUpdatedAt;
@@ -17,6 +22,7 @@ public class Poll {
     private Set<Long> invitedUserIds = new HashSet<>();
     private List<Vote> votes = new ArrayList<>();
     
+    @Size(min = 2, message = "Poll must have at least 2 options")
     private List<VoteOption> options = new ArrayList<>();
 
     public Poll() {}
@@ -49,11 +55,11 @@ public class Poll {
     public Instant getValidUntil() {return validUntil;}
     public void setValidUntil(Instant validUntil) {this.validUntil = validUntil;}
 
-    public boolean isPublic() { return isPublic; }
-    public void setPublic(boolean isPublic) { this.isPublic = isPublic; }
+    public boolean isPublic() {return isPublic;}
+    public void setPublic(boolean isPublic) {this.isPublic = isPublic;}
 
-    public Set<Long> getInvitedUserIds() { return invitedUserIds; }
-    public void setInvitedUserIds(Set<Long> invitedUserIds) { this.invitedUserIds = invitedUserIds; }
+    public Set<Long> getInvitedUserIds() {return invitedUserIds;}
+    public void setInvitedUserIds(Set<Long> invitedUserIds) {this.invitedUserIds = invitedUserIds;}
 
     public List<Vote> getVotes() {return votes;}
     public void setVotes(List<Vote> votes) {this.votes = votes;}

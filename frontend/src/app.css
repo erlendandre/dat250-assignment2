@@ -60,6 +60,43 @@ nav button:hover {
   margin-right: auto;
 }
 
+.poll-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.delete-btn {
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  background-color: #ff3f3f;
+  color: white;
+}
+
+.cancel-btn {
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  background-color: #9d9d9d;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #ff1515;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background-color: #b5b5b5;
+  color: white;
+}
+
 input, select, textarea {
   display: block;
   width: 100%;

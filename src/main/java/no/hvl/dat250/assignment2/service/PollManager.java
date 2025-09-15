@@ -74,15 +74,40 @@ public class PollManager {
 
     public Poll getPoll(Long id) {return polls.get(id);}
 
+    public Collection<Poll> getPollsForUser(Long userId) {
+        return polls.values().stream()
+            .filter(p -> p.isPublic() || (p.getInvitedUserIds() != null && p.getInvitedUserIds().contains(userId)))
+            .toList();
+    }
+
     public Poll addPoll(Poll poll) {
         long id = pollsIdSeq.incrementAndGet();
         poll.setId(id);
+
         Instant now = Instant.now();
         poll.setPublishedAt(now);
         poll.setLastUpdatedAt(now);
 
         if (poll.getInvitedUserIds() == null) {
             poll.setInvitedUserIds(new HashSet<>());
+        }
+
+        if (!poll.isPublic() && poll.getUsername() != null) {
+            User creator = users.values().stream()
+                                .filter(u -> u.getUsername().equals(poll.getUsername()))
+                                .findFirst()
+                                .orElse(null);
+            if (creator != null) {
+                poll.getInvitedUserIds().add(creator.getId());
+            }
+        }
+
+        if (poll.getOptions() != null) {
+            for (VoteOption option : poll.getOptions()) {
+                long optionId = voteOptionsIdSeq.incrementAndGet();
+                option.setId(optionId);
+                option.setPollId(poll.getId());
+            }
         }
 
         polls.put(id, poll);
@@ -96,8 +121,16 @@ public class PollManager {
         return updatedPoll;
     }
 
-    public boolean removePoll(Long id) {
-        return polls.remove(id) != null;
+    public boolean removePoll(Long pollId, Long userId) {
+        Poll poll = polls.get(pollId);
+        if (poll == null) return false;
+
+        if (!poll.getUsername().equals(getUser(userId).getUsername())) {
+            return false;
+        }
+
+        polls.remove(pollId);
+        return true;
     }
 
 

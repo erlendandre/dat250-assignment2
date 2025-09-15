@@ -1,5 +1,6 @@
 <script>
   export let onDone;
+  import { API_BASE } from '../config.js';
   
   let username = '';
   let email = '';
@@ -23,7 +24,7 @@
     const user = { username, email, password };
   
     try {
-      const res = await fetch('http://localhost:8080/users', {
+      const res = await fetch(`${API_BASE}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user)

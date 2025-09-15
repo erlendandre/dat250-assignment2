@@ -1,4 +1,6 @@
 <script>
+  import { API_BASE } from '../config.js';
+  
   export let onLogin;
   export let onBack;
   
@@ -8,7 +10,7 @@
   
   async function login() {
     try {
-      const res = await fetch('http://localhost:8080/users/login', {
+      const res = await fetch(`${API_BASE}/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -16,7 +18,7 @@
 
         if (res.ok) {
         const user = await res.json();
-        if (onLogin) onLogin(user); // sender bruker tilbake til App.svelte
+        if (onLogin) onLogin(user);
       } else {
         error = 'Invalid credentials';
       }

@@ -4,6 +4,7 @@
   import CreatePoll from './components/CreatePoll.svelte';
   import Vote from './components/Vote.svelte';
   import Login from './components/Login.svelte';
+  import AdminPolls from './components/AdminPolls.svelte';
 
   import './app.css';
   
@@ -11,7 +12,7 @@
 
   let currentView = 'landing';
   let mainTab = 'vote';
-  let isGuest = false;    // true hvis gjest
+  let isGuest = false;
 
   function goToLanding() { 
     currentView = 'landing'; 
@@ -62,10 +63,13 @@
       {:else if currentUser}
         <nav>
           <button on:click={() => mainTab = 'createPoll'} class:active={mainTab === 'createPoll'}>
-            Create Poll
+            Create poll
           </button>
           <button on:click={() => mainTab = 'vote'} class:active={mainTab === 'vote'}>
-            Vote
+            Vote on polls
+          </button>
+          <button on:click={() => mainTab = 'admin'} class:active={mainTab === 'admin'}>
+            Administer polls
           </button>
         </nav>
   
@@ -76,7 +80,10 @@
           />
 
         {:else if mainTab === 'vote'}
-          <Vote />
+          <Vote currentUser={currentUser} />
+
+        {:else if mainTab === 'admin'}
+          <AdminPolls currentUser={currentUser} />
         {/if}
       {/if}
     {/if}
@@ -92,9 +99,9 @@
       </div>
     {:else if currentUser}
       <div>
-        Logged in as <strong>{currentUser.username}</strong>
+        Logged in as <strong>{currentUser.username}  </strong>
         <nav>
-          <button on:click={goToLanding} style="margin-left:1rem;">Log out</button>
+          <button on:click={goToLanding} style="margin-top:1rem;">Log out</button>
         </nav>
       </div>
     {/if}

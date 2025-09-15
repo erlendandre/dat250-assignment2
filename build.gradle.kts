@@ -1,7 +1,9 @@
+import com.github.gradle.node.npm.task.NpmTask
+
 plugins {
     java
-    id("org.springframework.boot") version "3.4.9"
-    id("io.spring.dependency-management") version "1.1.7"
+    id("org.springframework.boot") version "3.2.2"
+    id("io.spring.dependency-management") version "1.1.0"
     id("com.github.node-gradle.node") version "7.0.2"
 }
 
@@ -11,7 +13,7 @@ description = "DAT250 Assignment 2 demo project for Spring Boot"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
@@ -26,23 +28,20 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-// --- Node/Frontend build configuration ---
 node {
-    version.set("22.0.0")
-    npmVersion.set("10.5.1")
+    version.set("22.12.0")
+    npmVersion.set("10.9.0")
     download.set(true)
-    workDir.set(file("${project.buildDir}/node"))
     nodeProjectDir.set(file("frontend"))
 }
 
-tasks.register<com.github.gradle.node.npm.task.NpmTask>("npmBuildFrontend") {
+tasks.register<NpmTask>("npmBuildFrontend") {
     dependsOn("npmInstall")
     args.set(listOf("run", "build"))
     workingDir.set(file("frontend"))
@@ -55,5 +54,17 @@ tasks.register<Copy>("copyWebApp") {
 }
 
 tasks.register("buildFrontend") {
+    dependsOn("copyWebApp")
+}
+
+tasks.named("bootJar") {
+    dependsOn("buildFrontend")
+}
+
+tasks.named("bootRun") {
+    dependsOn("buildFrontend")
+}
+
+tasks.named("processResources") {
     dependsOn("copyWebApp")
 }

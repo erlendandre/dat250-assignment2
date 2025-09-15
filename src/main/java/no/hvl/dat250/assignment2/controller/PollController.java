@@ -1,11 +1,14 @@
 package no.hvl.dat250.assignment2.controller;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -72,14 +75,8 @@ public class PollController {
     }
 
     // Create
-    // @PostMapping
-    // public Poll createPoll(@Valid @RequestBody Poll poll) {
-    //     return pollManager.addPoll(poll);
-    // }
-
     @PostMapping
     public Poll createPoll(@Valid @RequestBody Poll poll) {
-        // Hvis private poll, valider at alle userIds finnes
         if (!poll.isPublic()) {
             for (Long userId : poll.getInvitedUserIds()) {
                 if (pollManager.getUser(userId) == null) {
@@ -90,14 +87,23 @@ public class PollController {
         if (poll.getUsername() == null || poll.getUsername().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required");
         }
+
         return pollManager.addPoll(poll);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        String errors = ex.getBindingResult().getAllErrors()
+            .stream()
+            .map(err -> err.getDefaultMessage())
+            .collect(Collectors.joining("; "));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 
     @PostMapping("/{pollId}/votes")
     public Vote addVoteToPoll(@PathVariable Long pollId, @RequestBody Vote vote) {
         Vote created = pollManager.addVoteToPoll(pollId, vote);
         if (created == null) {
-            // forskjell på poll ikke funnet (404) og ikke tillatt (403)
             if (pollManager.getPoll(pollId) == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll not found");
             }
@@ -152,10 +158,10 @@ public class PollController {
     }
 
     // Delete
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePoll(@PathVariable Long id) {
-        boolean removed = pollManager.removePoll(id);
+    @DeleteMapping("/{id}/{userId}")
+    public ResponseEntity<Void> deletePoll(@PathVariable Long id, @PathVariable Long userId) {
+        boolean removed = pollManager.removePoll(id, userId);
         if (removed) return ResponseEntity.noContent().build();
-        else return ResponseEntity.notFound().build();
+        else return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 }
