@@ -1,47 +1,102 @@
 <script>
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Counter.svelte'
+  import LandingPage from './components/LandingPage.svelte';
+  import CreateUser from './components/CreateUser.svelte';
+  import CreatePoll from './components/CreatePoll.svelte';
+  import Vote from './components/Vote.svelte';
+  import Login from './components/Login.svelte';
+
+  import './app.css';
+  
+  export let currentUser = null;
+
+  let currentView = 'landing';
+  let mainTab = 'vote';
+  let isGuest = false;    // true hvis gjest
+
+  function goToLanding() { 
+    currentView = 'landing'; 
+    currentUser = null;
+    isGuest = false;
+  }
+  
+  function goToMain(user) { 
+    currentUser = user; 
+    isGuest = false;
+    currentView = 'main'; 
+  }
+
+  function goToGuest() {
+    currentUser = null;
+    isGuest = true;
+    currentView = 'main';
+  }
+
+  function showRegister() { currentView = 'register'; }
 </script>
 
-<main>
-  <div>
-    <a href="https://vite.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
+<div id="app">
+  <header>
+    <h1>Poll Application</h1>
+  </header>
 
-  <div class="card">
-    <Counter />
-  </div>
+  <main>
+    {#if currentView === 'landing'}
+      <LandingPage 
+        onLogin={() => currentView = 'login'} 
+        onRegister={showRegister} 
+        onGuest={goToGuest} />
+  
+    {:else if currentView === 'register'}
+      <CreateUser onDone={() => currentView = 'login'} />
+      <nav>
+        <button on:click={goToLanding}>Back</button>
+      </nav>
+  
+    {:else if currentView === 'login'}
+      <Login onLogin={goToMain} onBack={goToLanding} />
+  
+    {:else if currentView === 'main'}
+      {#if isGuest}
+        <Vote />
+  
+      {:else if currentUser}
+        <nav>
+          <button on:click={() => mainTab = 'createPoll'} class:active={mainTab === 'createPoll'}>
+            Create Poll
+          </button>
+          <button on:click={() => mainTab = 'vote'} class:active={mainTab === 'vote'}>
+            Vote
+          </button>
+        </nav>
+  
+        {#if mainTab === 'createPoll'}
+          <CreatePoll 
+            onDone={() => mainTab = 'vote'} 
+            currentUser={currentUser} 
+          />
 
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
+        {:else if mainTab === 'vote'}
+          <Vote />
+        {/if}
+      {/if}
+    {/if}
+  </main>
 
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
-</main>
-
-<style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-  }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
-    color: #888;
-  }
-</style>
+  <footer style="margin-top:2rem; text-align:center;">
+    {#if isGuest}
+      <div>
+        You are in guest mode
+        <nav>
+          <button on:click={goToLanding} style="margin-left:1rem;">Back to login</button>
+        </nav>
+      </div>
+    {:else if currentUser}
+      <div>
+        Logged in as <strong>{currentUser.username}</strong>
+        <nav>
+          <button on:click={goToLanding} style="margin-left:1rem;">Log out</button>
+        </nav>
+      </div>
+    {/if}
+  </footer>
+</div>

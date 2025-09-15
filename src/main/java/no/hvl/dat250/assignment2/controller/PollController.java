@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,6 +26,7 @@ import no.hvl.dat250.assignment2.service.PollManager;
  * REST-controller for Poll
  * Handles CRUD-operations via PollManager
  */
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/polls")
 public class PollController {
@@ -70,8 +72,24 @@ public class PollController {
     }
 
     // Create
+    // @PostMapping
+    // public Poll createPoll(@Valid @RequestBody Poll poll) {
+    //     return pollManager.addPoll(poll);
+    // }
+
     @PostMapping
     public Poll createPoll(@Valid @RequestBody Poll poll) {
+        // Hvis private poll, valider at alle userIds finnes
+        if (!poll.isPublic()) {
+            for (Long userId : poll.getInvitedUserIds()) {
+                if (pollManager.getUser(userId) == null) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User ID " + userId + " does not exist");
+                }
+            }
+        }
+        if (poll.getUsername() == null || poll.getUsername().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required");
+        }
         return pollManager.addPoll(poll);
     }
 

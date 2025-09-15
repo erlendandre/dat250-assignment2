@@ -17,7 +17,6 @@ public class Poll {
     private Set<Long> invitedUserIds = new HashSet<>();
     private List<Vote> votes = new ArrayList<>();
     
-    // @Size(min = 2, message = "Poll must have at least 2 vote options")
     private List<VoteOption> options = new ArrayList<>();
 
     public Poll() {}

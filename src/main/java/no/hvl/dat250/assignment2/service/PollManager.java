@@ -2,6 +2,7 @@ package no.hvl.dat250.assignment2.service;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -37,6 +38,11 @@ public class PollManager {
     public Collection<User> getAllUsers() {return users.values();}
 
     public User getUser(Long id) {return users.get(id);}
+
+    public boolean userExists(String username, String email) {
+        return users.values().stream()
+            .anyMatch(u -> u.getUsername().equalsIgnoreCase(username) || u.getEmail().equalsIgnoreCase(email));
+    }
     
     public User addUser(User user) {
         long id = usersIdSeq.incrementAndGet();
@@ -67,13 +73,18 @@ public class PollManager {
     public Collection<Poll> getAllPolls() {return polls.values();}
 
     public Poll getPoll(Long id) {return polls.get(id);}
-    
+
     public Poll addPoll(Poll poll) {
         long id = pollsIdSeq.incrementAndGet();
         poll.setId(id);
         Instant now = Instant.now();
         poll.setPublishedAt(now);
-        poll.setLastUpdatedAt(now);      
+        poll.setLastUpdatedAt(now);
+
+        if (poll.getInvitedUserIds() == null) {
+            poll.setInvitedUserIds(new HashSet<>());
+        }
+
         polls.put(id, poll);
         return poll;
     }
@@ -99,7 +110,7 @@ public class PollManager {
     public Vote addVoteToPoll(Long pollId, Vote vote) {
         Poll poll = polls.get(pollId);
         if (poll == null) {
-            return null; // Controller gir 404
+            return null;
         }
 
         Instant now = Instant.now();
