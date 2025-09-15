@@ -37,8 +37,3 @@
 
 4. **Build Automation**  
    Fully automating the frontend build and copy into Spring Boot via Gradle works but could be streamlined further. Current setup requires Node.js version 22.12+ for warning-free builds.
-
----
-
-**Author:** Erlend Andre  
-**Date:** 2025-09-15
