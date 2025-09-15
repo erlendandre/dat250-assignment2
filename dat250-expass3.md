@@ -53,5 +53,5 @@ The application runs on http://localhost:8080.
 ## Future Improvements
 1. Authentication for secure sessions
 2. Implement database
-2. Enhance UI for private poll invitations and responsive design
-3. Further testing and enforcement of all validation rules
+3. Enhance UI for private poll invitations and responsive design
+4. Further testing and enforcement of all validation rules
