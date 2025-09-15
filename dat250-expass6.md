@@ -12,17 +12,12 @@
    Public polls were not showing for logged-in users, and private polls were not filtered correctly. This required careful handling of the `invitedUserIds` property and conditional rendering based on the current user.
 
 4. **Frontend feployment issues**  
-   - Running `./gradlew buildFrontend` initially failed due to missing npm scripts and Node.js version mismatch.  
-   - Node version 22.0.0 caused warnings; Vite requires >=22.12. Upgrading Node resolved warnings.  
-   - Relative URLs had to replace `http://localhost:8080/...` for the SPA to work after deployment in Spring Boot.
+   Running `./gradlew buildFrontend` initially failed due to missing npm scripts and Node.js version mismatch.  
+   Node version 22.0.0 caused warnings; Vite requires >=22.12. Upgrading Node resolved warnings.  
+   Relative URLs had to replace `http://localhost:8080/...` for the SPA to work after deployment in Spring Boot.
 
 5. **Gradle task conflicts**  
    There was a conflict with duplicate `npmInstall` tasks when trying to automate frontend build with Gradle. Removing redundant task definitions solved the issue.
-
-## Experiment code links
-
-- [Frontend repository](https://github.com/erlendandre/dat250-assignment2/tree/main/frontend)
-- [Full repository](https://github.com/erlendandre/dat250-assignment2)
 
 ## Pending issues
 
@@ -40,3 +35,9 @@
 
 5. **Poll availability**  
    Can only access hardcoded test polls for now.. Working on this.
+
+
+## Links
+
+- [Frontend repository](https://github.com/erlendandre/dat250-assignment2/tree/main/frontend)
+- [Full repository](https://github.com/erlendandre/dat250-assignment2)
