@@ -54,4 +54,4 @@ The application runs on http://localhost:8080.
 1. Authentication for secure sessions
 2. Implement database
 3. Enhance UI for private poll invitations and responsive design
-4. Further testing and enforcement of all validation rules
+4. Further testing and enforcement of validation rules
