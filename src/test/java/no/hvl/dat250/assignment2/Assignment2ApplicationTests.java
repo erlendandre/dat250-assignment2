@@ -98,6 +98,18 @@ class Assignment2ApplicationTests {
 		poll.setPublic(false);
 		poll.setInvitedUserIds(Set.of(created2.getId()));
 
+		// Quick fix: legg inn to options slik at validering passerer
+		VoteOption dummy1 = new VoteOption();
+		dummy1.setCaption("dummy1");
+		dummy1.setPresentationOrder(1);
+
+		VoteOption dummy2 = new VoteOption();
+		dummy2.setCaption("dummy2");
+		dummy2.setPresentationOrder(2);
+
+		// Bruk List.of(...) siden Poll.setOptions tar en List
+		poll.setOptions(List.of(dummy1, dummy2));
+
 		Poll createdPoll = restClient.post()
 				.uri(baseUrl + "/polls")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -143,8 +155,20 @@ class Assignment2ApplicationTests {
 
 		// Bad path tests
 		// User not invited tries to vote
+		User user3 = new User();
+		user3.setUsername("user3");
+		user3.setEmail("user3@example.com");
+		user3.setPassword("password3");
+
+		User created3 = restClient.post()
+				.uri(baseUrl + "/users")
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(user3)
+				.retrieve()
+				.body(User.class);
+
 		Vote invalidVote = new Vote();
-		invalidVote.setUserId(created1.getId());
+		invalidVote.setUserId(created3.getId());
 		invalidVote.setVoteOptionId(createdYes.getId());
 
 		try {
@@ -197,6 +221,17 @@ class Assignment2ApplicationTests {
 		publicPoll.setValidUntil(Instant.parse("2028-01-01T00:00:00Z"));
 		publicPoll.setUsername("user1");
 		publicPoll.setPublic(true);
+
+		// Legg til minst to alternativer
+		VoteOption testing1 = new VoteOption();
+		yes.setCaption("testing1");
+		yes.setPresentationOrder(1);
+
+		VoteOption testing2 = new VoteOption();
+		no.setCaption("testing2");
+		no.setPresentationOrder(2);
+
+		publicPoll.setOptions(List.of(testing1, testing1));
 
 		Poll createdPublicPoll = restClient.post()
 				.uri(baseUrl + "/polls")
@@ -260,7 +295,7 @@ class Assignment2ApplicationTests {
 
 		// Delete poll
 		restClient.delete()
-				.uri(baseUrl + "/polls/{pollId}", pollId)
+				.uri(baseUrl + "/polls/{pollId}/{userId}", pollId, created1.getId())
 				.retrieve()
 				.toBodilessEntity();
 
