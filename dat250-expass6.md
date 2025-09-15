@@ -1,4 +1,4 @@
-# DAT250 Experiment 6 – SPA Integration with Poll App
+# DAT250 – SPA Integration with Poll App
 
 ## Technical Problems Encountered
 
