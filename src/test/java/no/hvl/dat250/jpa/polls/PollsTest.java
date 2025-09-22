@@ -46,17 +46,6 @@ public class PollsTest {
     }
 
     @BeforeEach
-    public void checkPersistenceXml() {
-        // Sjekk om META-INF/persistence.xml er på classpath
-        var url = PollsTest.class.getClassLoader().getResource("META-INF/persistence.xml");
-        if (url == null) {
-            System.out.println("💥 Kan IKKE finne persistence.xml på classpath!");
-        } else {
-            System.out.println("✅ Fant persistence.xml: " + url);
-        }
-    }
-
-    @BeforeEach
     public void setUp() {
         EntityManagerFactory emf = new PersistenceConfiguration("polls")
                 .managedClass(Poll.class)

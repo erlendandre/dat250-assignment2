@@ -182,32 +182,6 @@ public class PollManager {
         return vote;
     }
 
-    // public Vote addVoteToPoll(Poll poll, Long userId, Long voteOptionId) {
-    //     if (poll == null) return null;
-
-    //     User user = getUser(userId);
-    //     VoteOption option = poll.getOptions().stream()
-    //                             .filter(o -> o.getId().equals(voteOptionId))
-    //                             .findFirst()
-    //                             .orElse(null);
-
-    //     if (user == null || option == null) return null;
-
-    //     Vote vote = new Vote();
-    //     vote.setId(votesIdSeq.incrementAndGet());
-    //     vote.setUser(user);
-    //     vote.setVotesOn(option);
-    //     vote.setPoll(poll);
-    //     Instant now = Instant.now();
-    //     vote.setPublishedAt(now);
-    //     vote.setLastUpdatedAt(now);
-
-    //     poll.getVotes().add(vote);
-    //     option.getVotes().add(vote);
-
-    //     return vote;
-    // }
-	
     public void removeVoteFromPoll(Poll poll, Long voteId) {
             if (poll != null) {
                 List<Vote> votes = poll.getVotes();

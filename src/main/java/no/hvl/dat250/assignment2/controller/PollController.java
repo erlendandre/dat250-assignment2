@@ -117,21 +117,6 @@ public class PollController {
         return created;
     }
 
-    // @PostMapping("/{pollId}/votes")
-    // public Vote addVoteToPoll(@PathVariable Long pollId, @RequestBody Map<String, Long> body) {
-    //     Long userId = body.get("userId");
-    //     Long voteOptionId = body.get("voteOptionId");
-
-    //     Poll poll = pollManager.getPoll(pollId);
-    //     Vote created = pollManager.addVoteToPoll(poll, userId, voteOptionId);
-
-    //     if (created == null) {
-    //         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user or option");
-    //     }
-
-    //     return created;
-    // }
-
     @PostMapping("/{pollId}/options")
     public VoteOption addOptionToPoll(@PathVariable Long pollId, @RequestBody VoteOption option) {
         Poll poll = pollManager.getPoll(pollId);
