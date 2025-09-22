@@ -1,10 +1,27 @@
 package no.hvl.dat250.assignment2.model;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+@Entity
+@Table(name = "users")
 public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank
@@ -15,11 +32,21 @@ public class User {
     @Email(message = "Email must be valid")
     private String email;
 
-    @NotBlank
+    // @NotBlank
     @Size(min = 6, message="Password must be at least 6 characters")
     private String password;
 
+    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<Poll> created = new LinkedHashSet<>();
+
     public User() {}
+
+    public User(String username, String email) {
+        this.username = username;
+        this.email = email;
+        this.created = new LinkedHashSet<>();
+    }
 
     public User(Long id, String username, String email, String password) {
         this.id = id;
@@ -39,4 +66,30 @@ public class User {
 
     public String getPassword() {return password;}
     public void setPassword(String password) {this.password = password;}
+
+    public Poll createPoll(String question) {
+        Poll poll = new Poll();
+        poll.setQuestion(question);
+        poll.setCreatedByUser(this);
+        this.created.add(poll);
+        return poll;
+    }
+
+    public Vote voteFor(VoteOption option) {
+        if (option == null) {
+            throw new IllegalArgumentException("VoteOption cannot be null");
+        }
+
+        Vote vote = new Vote();
+        vote.setUser(this);
+        vote.setPoll(option.getPoll());
+        vote.setVotesOn(option);
+        vote.setPublishedAt(java.time.Instant.now());
+        vote.setLastUpdatedAt(java.time.Instant.now());
+
+        option.getVotes().add(vote);
+        option.getPoll().getVotes().add(vote);
+
+        return vote;
+    }
 }

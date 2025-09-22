@@ -59,11 +59,13 @@ public class PollManager {
 
     public void removeUser(Long id) {users.remove(id);}
 
-    public boolean inviteUserToPoll(Long pollId, Long userId) {
-        Poll poll = polls.get(pollId);
-        if (poll == null || poll.isPublic()) {return false;}
-        if (!users.containsKey(userId)) {return false;}
-        poll.getInvitedUserIds().add(userId);
+    public boolean inviteUserToPoll(Poll poll, User user) {
+
+        if (poll == null || poll.isPublic() || user == null) {
+            return false;
+        }
+
+        poll.getInvitedUsers().add(user);
         poll.setLastUpdatedAt(Instant.now());
         return true;
     }
@@ -75,8 +77,11 @@ public class PollManager {
     public Poll getPoll(Long id) {return polls.get(id);}
 
     public Collection<Poll> getPollsForUser(Long userId) {
+        User user = users.get(userId);
+        if (user == null) return List.of();
+
         return polls.values().stream()
-            .filter(p -> p.isPublic() || (p.getInvitedUserIds() != null && p.getInvitedUserIds().contains(userId)))
+            .filter(p -> p.isPublic() || (p.getInvitedUsers() != null && p.getInvitedUsers().contains(user)))
             .toList();
     }
 
@@ -88,17 +93,17 @@ public class PollManager {
         poll.setPublishedAt(now);
         poll.setLastUpdatedAt(now);
 
-        if (poll.getInvitedUserIds() == null) {
-            poll.setInvitedUserIds(new HashSet<>());
+        if (poll.getInvitedUsers() == null) {
+            poll.setInvitedUsers(new HashSet<>());
         }
-
-        if (!poll.isPublic() && poll.getUsername() != null) {
-            User creator = users.values().stream()
-                                .filter(u -> u.getUsername().equals(poll.getUsername()))
-                                .findFirst()
-                                .orElse(null);
+        
+        if (!poll.isPublic() && poll.getCreatedByUser() != null) {
+            User creator = poll.getCreatedByUser();
             if (creator != null) {
-                poll.getInvitedUserIds().add(creator.getId());
+                if (poll.getInvitedUsers() == null) {
+                    poll.setInvitedUsers(new HashSet<>());
+                }
+                poll.getInvitedUsers().add(creator);
             }
         }
 
@@ -106,7 +111,7 @@ public class PollManager {
             for (VoteOption option : poll.getOptions()) {
                 long optionId = voteOptionsIdSeq.incrementAndGet();
                 option.setId(optionId);
-                option.setPollId(poll.getId());
+                option.setPoll(poll);
             }
         }
 
@@ -121,27 +126,25 @@ public class PollManager {
         return updatedPoll;
     }
 
-    public boolean removePoll(Long pollId, Long userId) {
-        Poll poll = polls.get(pollId);
-        if (poll == null) return false;
+    public boolean removePoll(Poll poll, User user) {
+        if (poll == null || user == null) return false;
 
-        if (!poll.getUsername().equals(getUser(userId).getUsername())) {
+        if (!poll.getCreatedByUser().equals(user)) {
             return false;
         }
 
-        polls.remove(pollId);
+        polls.remove(poll.getId());
         return true;
     }
 
 
     // Vote CRUD
-    public Collection<Vote> getVotesForPoll(Long pollId) {
-        Poll poll = polls.get(pollId);
-        return (poll != null) ? poll.getVotes() : null;
+    public Collection<Vote> getVotesForPoll(Poll poll) {
+        if (poll == null) return List.of();
+        return poll.getVotes();
     }
 
-    public Vote addVoteToPoll(Long pollId, Vote vote) {
-        Poll poll = polls.get(pollId);
+    public Vote addVoteToPoll(Poll poll, Vote vote) {
         if (poll == null) {
             return null;
         }
@@ -157,12 +160,13 @@ public class PollManager {
         }
 
         if (!poll.isPublic()) {
-            if (vote.getUserId() == null || !poll.getInvitedUserIds().contains(vote.getUserId())) {
+            User voteUser = vote.getUser();
+            if (voteUser == null || !poll.getInvitedUsers().contains(voteUser)) {
                 return null;
             }
 
             for (Vote existingVote : poll.getVotes()) {
-                if (vote.getUserId().equals(existingVote.getUserId())) {
+                if (voteUser.equals(existingVote.getUser())) {
                     return null;
                 }
             }
@@ -170,16 +174,41 @@ public class PollManager {
 
         long id = votesIdSeq.incrementAndGet();
         vote.setId(id);
-        vote.setPollId(pollId);
+        vote.setPoll(poll);
         vote.setPublishedAt(now);
         vote.setLastUpdatedAt(now);
 
         poll.getVotes().add(vote);
         return vote;
     }
+
+    // public Vote addVoteToPoll(Poll poll, Long userId, Long voteOptionId) {
+    //     if (poll == null) return null;
+
+    //     User user = getUser(userId);
+    //     VoteOption option = poll.getOptions().stream()
+    //                             .filter(o -> o.getId().equals(voteOptionId))
+    //                             .findFirst()
+    //                             .orElse(null);
+
+    //     if (user == null || option == null) return null;
+
+    //     Vote vote = new Vote();
+    //     vote.setId(votesIdSeq.incrementAndGet());
+    //     vote.setUser(user);
+    //     vote.setVotesOn(option);
+    //     vote.setPoll(poll);
+    //     Instant now = Instant.now();
+    //     vote.setPublishedAt(now);
+    //     vote.setLastUpdatedAt(now);
+
+    //     poll.getVotes().add(vote);
+    //     option.getVotes().add(vote);
+
+    //     return vote;
+    // }
 	
-    public void removeVoteFromPoll(Long pollId, Long voteId) {
-        Poll poll = polls.get(pollId);
+    public void removeVoteFromPoll(Poll poll, Long voteId) {
             if (poll != null) {
                 List<Vote> votes = poll.getVotes();
                 Vote toRemove = null;
@@ -197,15 +226,14 @@ public class PollManager {
             }
     }
 	
-    public Vote updateVoteInPoll(Long pollId, Long voteId, Vote updatedVote) {
-        Poll poll = polls.get(pollId);
+    public Vote updateVoteInPoll(Poll poll, Long voteId, Vote updatedVote) {
         if (poll == null) return null;
 
         for (int i = 0; i < poll.getVotes().size(); i++) {
             Vote v = poll.getVotes().get(i);
             if (v.getId().equals(voteId)) {
                 updatedVote.setId(voteId);
-                updatedVote.setPollId(pollId);
+                updatedVote.setPoll(poll);
                 updatedVote.setPublishedAt(v.getPublishedAt());
                 updatedVote.setLastUpdatedAt(Instant.now());
 
@@ -218,32 +246,29 @@ public class PollManager {
 	
 
     // VoteOption CRUD
-    public Collection<VoteOption> getOptionsForPoll(Long pollId) {
-        Poll poll = polls.get(pollId);
+    public Collection<VoteOption> getOptionsForPoll(Poll poll) {
         return (poll != null) ? poll.getOptions() : null;
     }
 
-    public VoteOption addOptionToPoll(Long pollId, VoteOption option) {
-        Poll poll = polls.get(pollId);
+    public VoteOption addOptionToPoll(Poll poll, VoteOption option) {
         if (poll == null) return null;
 
         long id = voteOptionsIdSeq.incrementAndGet();
         option.setId(id);
-        option.setPollId(pollId);
+        option.setPoll(poll);
 
         poll.getOptions().add(option);
         return option;
     }
 
-    public VoteOption updateOptionInPoll(Long pollId, Long optionId, VoteOption updatedOption) {
-        Poll poll = polls.get(pollId);
+    public VoteOption updateOptionInPoll(Poll poll, Long optionId, VoteOption updatedOption) {
         if (poll == null) return null;
 
         for (int i = 0; i < poll.getOptions().size(); i++) {
             VoteOption opt = poll.getOptions().get(i);
             if (opt.getId().equals(optionId)) {
                 updatedOption.setId(optionId);
-                updatedOption.setPollId(pollId);
+                updatedOption.setPoll(poll);
                 poll.getOptions().set(i, updatedOption);
                 return updatedOption;
             }
@@ -251,8 +276,7 @@ public class PollManager {
         return null;
     }
 
-    public void removeOptionFromPoll(Long pollId, Long optionId) {
-        Poll poll = polls.get(pollId);
+    public void removeOptionFromPoll(Poll poll, Long optionId) {
         if (poll != null) {
             poll.getOptions().removeIf(opt -> opt.getId().equals(optionId));
         }

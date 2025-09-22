@@ -13,7 +13,8 @@
       const res = await fetch(`${API_BASE}/polls`);
       if (res.ok) {
         const data = await res.json();
-        userPolls = data.filter(poll => poll.username === currentUser.username);
+        // userPolls = data.filter(poll => poll.username === currentUser.username);
+        userPolls = data.filter(poll => poll.createdByUser?.id === currentUser.id);
       } else {
         console.error('Failed to load polls', await res.text());
       }

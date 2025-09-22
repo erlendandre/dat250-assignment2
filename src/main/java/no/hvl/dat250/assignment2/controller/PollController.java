@@ -1,6 +1,7 @@
 package no.hvl.dat250.assignment2.controller;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
 import no.hvl.dat250.assignment2.model.Poll;
+import no.hvl.dat250.assignment2.model.User;
 import no.hvl.dat250.assignment2.model.Vote;
 import no.hvl.dat250.assignment2.model.VoteOption;
 import no.hvl.dat250.assignment2.service.PollManager;
@@ -58,34 +60,36 @@ public class PollController {
 
     @GetMapping("/{pollId}/votes")
     public Collection<Vote> getVotesForPoll(@PathVariable Long pollId) {
-        Collection<Vote> votes = pollManager.getVotesForPoll(pollId);
-        if (votes == null) {
+        Poll poll = pollManager.getPoll(pollId);
+        if (poll == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll not found");
         }
-        return votes;
+        return pollManager.getVotesForPoll(poll);
     }
 
     @GetMapping("/{pollId}/options")
     public Collection<VoteOption> getOptionsForPoll(@PathVariable Long pollId) {
-        Collection<VoteOption> options = pollManager.getOptionsForPoll(pollId);
-        if (options == null) {
+        Poll poll = pollManager.getPoll(pollId);
+        if (poll == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll not found");
-        }
-        return options;
+        } 
+        return pollManager.getOptionsForPoll(poll);
     }
+
 
     // Create
     @PostMapping
     public Poll createPoll(@Valid @RequestBody Poll poll) {
         if (!poll.isPublic()) {
-            for (Long userId : poll.getInvitedUserIds()) {
-                if (pollManager.getUser(userId) == null) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User ID " + userId + " does not exist");
+            for (User user : poll.getInvitedUsers()) {
+                if (pollManager.getUser(user.getId()) == null) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User ID " + user.getId() + " does not exist");
                 }
             }
         }
-        if (poll.getUsername() == null || poll.getUsername().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required");
+
+        if (poll.getCreatedByUser() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Creator is required");
         }
 
         return pollManager.addPoll(poll);
@@ -102,7 +106,8 @@ public class PollController {
 
     @PostMapping("/{pollId}/votes")
     public Vote addVoteToPoll(@PathVariable Long pollId, @RequestBody Vote vote) {
-        Vote created = pollManager.addVoteToPoll(pollId, vote);
+        Poll poll = pollManager.getPoll(pollId);
+        Vote created = pollManager.addVoteToPoll(poll, vote);
         if (created == null) {
             if (pollManager.getPoll(pollId) == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll not found");
@@ -112,9 +117,25 @@ public class PollController {
         return created;
     }
 
+    // @PostMapping("/{pollId}/votes")
+    // public Vote addVoteToPoll(@PathVariable Long pollId, @RequestBody Map<String, Long> body) {
+    //     Long userId = body.get("userId");
+    //     Long voteOptionId = body.get("voteOptionId");
+
+    //     Poll poll = pollManager.getPoll(pollId);
+    //     Vote created = pollManager.addVoteToPoll(poll, userId, voteOptionId);
+
+    //     if (created == null) {
+    //         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user or option");
+    //     }
+
+    //     return created;
+    // }
+
     @PostMapping("/{pollId}/options")
     public VoteOption addOptionToPoll(@PathVariable Long pollId, @RequestBody VoteOption option) {
-        VoteOption created = pollManager.addOptionToPoll(pollId, option);
+        Poll poll = pollManager.getPoll(pollId);
+        VoteOption created = pollManager.addOptionToPoll(poll, option);
         if (created == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll not found");
         }
@@ -123,9 +144,14 @@ public class PollController {
 
     @PostMapping("/{pollId}/invite/{userId}")
     public void inviteUser(@PathVariable Long pollId, @PathVariable Long userId) {
-        boolean success = pollManager.inviteUserToPoll(pollId, userId);
+        Poll poll = pollManager.getPoll(pollId);
+        User user = pollManager.getUser(userId);
+        if (poll == null || user == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Poll or user not found");
+        }
+        boolean success = pollManager.inviteUserToPoll(poll, user);
         if (!success) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Poll not found or is public");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Poll is public or invite failed");
         }
     }
 
@@ -139,7 +165,8 @@ public class PollController {
     public Vote updateVoteInPoll(@PathVariable Long pollId,
                                 @PathVariable Long voteId,
                                 @RequestBody Vote updatedVote) {
-        Vote vote = pollManager.updateVoteInPoll(pollId, voteId, updatedVote);
+        Poll poll = pollManager.getPoll(pollId);
+        Vote vote = pollManager.updateVoteInPoll(poll, voteId, updatedVote);
         if (vote == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vote or Poll not found");
         }
@@ -150,17 +177,19 @@ public class PollController {
     public VoteOption updateOptionInPoll(@PathVariable Long pollId,
                                         @PathVariable Long optionId,
                                         @RequestBody VoteOption updatedOption) {
-        VoteOption option = pollManager.updateOptionInPoll(pollId, optionId, updatedOption);
+        Poll poll = pollManager.getPoll(pollId);
+        VoteOption option = pollManager.updateOptionInPoll(poll, optionId, updatedOption);
         if (option == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Option or Poll not found");
         }
         return option;
     }
 
-    // Delete
     @DeleteMapping("/{id}/{userId}")
     public ResponseEntity<Void> deletePoll(@PathVariable Long id, @PathVariable Long userId) {
-        boolean removed = pollManager.removePoll(id, userId);
+        Poll poll = pollManager.getPoll(id);
+        User user = pollManager.getUser(userId);
+        boolean removed = pollManager.removePoll(poll, user);
         if (removed) return ResponseEntity.noContent().build();
         else return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }

@@ -53,14 +53,24 @@
   async function createPoll() {
     if (!validatePoll()) return;
 
+    // const poll = {
+    //   question: pollQuestion,
+    //   options: options
+    //     .filter(o => o.trim() !== '')
+    //     .map((text, index) => ({ caption: text, presentationOrder: index })),
+    //   public: isPublic,
+    //   invitedUserIds: Array.from(invitedUserIds),
+    //   username: currentUser.username
+    // };
+
     const poll = {
       question: pollQuestion,
       options: options
         .filter(o => o.trim() !== '')
         .map((text, index) => ({ caption: text, presentationOrder: index })),
       public: isPublic,
-      invitedUserIds: Array.from(invitedUserIds),
-      username: currentUser.username
+      invitedUsers: Array.from(invitedUserIds).map(id => ({ id })),
+      createdByUser: { id: currentUser.id }
     };
 
     try {

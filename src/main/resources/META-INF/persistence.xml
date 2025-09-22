@@ -1,0 +1,28 @@
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence
+                                 https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+             version="3.0">
+
+  <persistence-unit name="polls" transaction-type="RESOURCE_LOCAL">
+    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+    <!-- Registrer alle entiteter -->
+    <class>no.hvl.dat250.assignment2.model.User</class>
+    <class>no.hvl.dat250.assignment2.model.Poll</class>
+    <class>no.hvl.dat250.assignment2.model.Vote</class>
+    <class>no.hvl.dat250.assignment2.model.VoteOption</class>
+
+    <properties>
+      <!-- JDBC‐innstillinger -->
+      <property name="jakarta.persistence.jdbc.driver"   value="org.h2.Driver"/>
+      <property name="jakarta.persistence.jdbc.url"      value="jdbc:h2:mem:polls"/>
+      <property name="jakarta.persistence.jdbc.user"     value="sa"/>
+      <property name="jakarta.persistence.jdbc.password" value=""/>
+
+      <!-- Drop & create ved oppstart -->
+      <property name="jakarta.persistence.schema-generation.database.action"
+                value="drop-and-create"/>
+    </properties>
+  </persistence-unit>
+</persistence>
