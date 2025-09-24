@@ -2,26 +2,24 @@
 
 [Full repository](https://github.com/erlendandre/dat250-assignment2)
 
+## Technical problems
+Trouble with `build.gradle.kts` regarding correct versions of `jboss.logging`, but found the right versions.
 
-## Technical problems that you encountered during installation and use of Java Persistence Architecture (JPA) and how you resolved
-
-Trouble with build.gradle.kts regarding correct versions of jboss.logging.
-
-
-## Link to your code for experiment 2 above. Make sure the included test case passes!
+## Link to your code for experiment 2. The included test case passes
 [Test](https://github.com/erlendandre/dat250-assignment2/blob/main/src/test/java/no/hvl/dat250/jpa/polls/PollsTest.java)
 
-## Explanation of how you inspected the database tables and what tables were created. For the latter, you may provide screenshots.
+## Inspection of database tables
+I tried to inspect with h2-console, but found it dificult last minute. Realized that the H2 database is only created for testing purposes in memory, so it does not persist outside the test process. So trying to inspect via the H2 Console did not work.
 
-I tried to inspect with h2-console, but found it dificult last minute.
-
-## Any pending issues with this assignment that you did not manage to solve
-
-Some trouble with the backend, but the test runs smooth.
-
-
-## To run
-From the backend root:
+Ended up inspecting what Hibernate actually does in the database during tests, by adding some properties in the test setup:
 ```bash
-./gradlew bootRun
+.property("hibernate.show_sql", "true")
+.property("hibernate.format_sql", "true")
+.createEntityManagerFactory();
 ```
+
+## Pending issues
+- Unable to delete created polls
+
+- Unable to create private polls
+  - When creating private polls, no users has access to any poll (private or public..)

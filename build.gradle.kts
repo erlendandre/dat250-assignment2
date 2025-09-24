@@ -17,16 +17,6 @@ java {
     }
 }
 
-// tasks.processResources {
-//     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-//     dependsOn(tasks.named("copyWebApp"))
-// }
-
-// tasks.processTestResources {
-//     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-//     dependsOn(tasks.named("copyWebApp"))
-// }
-
 repositories {
     mavenCentral()
 }

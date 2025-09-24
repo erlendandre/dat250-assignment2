@@ -36,6 +36,36 @@
     }
   });
 
+  // async function submitVote(option) {
+  //   if (!currentUser) {
+  //     alert('You must be logged in to vote!');
+  //     return;
+  //   }
+
+  //   try {
+  //     const res = await fetch(`${API_BASE}/polls/${selectedPoll.id}/votes`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         userId: currentUser.id,
+  //         voteOptionId: option.id
+  //       })
+  //     });
+
+  //     if (!res.ok) {
+  //       console.error('Vote not accepted', await res.text());
+  //       return;
+  //     }
+
+  //     const newVote = await res.json();
+  //     selectedPoll.votes = [...selectedPoll.votes, newVote];
+  //     selectedOption = option.caption;
+
+  //   } catch (err) {
+  //     console.error('Network error while voting', err);
+  //   }
+  // }
+
   async function submitVote(option) {
     if (!currentUser) {
       alert('You must be logged in to vote!');
@@ -58,6 +88,9 @@
       }
 
       const newVote = await res.json();
+
+      newVote.voteOptionId = option.id;
+
       selectedPoll.votes = [...selectedPoll.votes, newVote];
       selectedOption = option.caption;
 
@@ -97,7 +130,7 @@
         {#each selectedPoll.options as option (option.id)}
           {#if option.caption}
             <button on:click={() => submitVote(option)}>
-              {option.caption} — {countVotes(option.id)} votes ({votePercentage(option.id)}%)
+              {option.caption} - {countVotes(option.id)} votes ({votePercentage(option.id)}%)
             </button>
           {/if}
         {/each}

@@ -1,7 +1,6 @@
 package no.hvl.dat250.assignment2.controller;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
