@@ -4,6 +4,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -18,6 +20,7 @@ import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "users")
+@JsonIgnoreProperties({"created"})
 public class User {
 
     @Id
@@ -32,7 +35,7 @@ public class User {
     @Email(message = "Email must be valid")
     private String email;
 
-    // @NotBlank
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Size(min = 6, message="Password must be at least 6 characters")
     private String password;
 

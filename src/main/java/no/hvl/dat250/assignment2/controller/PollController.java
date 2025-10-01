@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
+import no.hvl.dat250.assignment2.dto.VoteRequest;
 import no.hvl.dat250.assignment2.model.Poll;
 import no.hvl.dat250.assignment2.model.User;
 import no.hvl.dat250.assignment2.model.Vote;
@@ -75,20 +76,25 @@ public class PollController {
         return pollManager.getOptionsForPoll(poll);
     }
 
-
-    // Create
     @PostMapping
     public Poll createPoll(@Valid @RequestBody Poll poll) {
+        if (poll.getCreatedByUser() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Creator is required");
+        }
+
+        Long creatorId = poll.getCreatedByUser().getId();
+        User creator = pollManager.getUser(creatorId);
+        if (creator == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User with ID " + creatorId + " not found");
+        }
+        poll.setCreatedByUser(creator);
+
         if (!poll.isPublic()) {
             for (User user : poll.getInvitedUsers()) {
                 if (pollManager.getUser(user.getId()) == null) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User ID " + user.getId() + " does not exist");
                 }
             }
-        }
-
-        if (poll.getCreatedByUser() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Creator is required");
         }
 
         return pollManager.addPoll(poll);
@@ -104,16 +110,28 @@ public class PollController {
     }
 
     @PostMapping("/{pollId}/votes")
-    public Vote addVoteToPoll(@PathVariable Long pollId, @RequestBody Vote vote) {
+    public Vote addVoteToPoll(@PathVariable Long pollId, @RequestBody VoteRequest request) {
         Poll poll = pollManager.getPoll(pollId);
-        Vote created = pollManager.addVoteToPoll(poll, vote);
-        if (created == null) {
-            if (pollManager.getPoll(pollId) == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll not found");
-            }
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vote not allowed");
+        if (poll == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll not found");
+
+        User user = pollManager.getUser(request.getUserId());
+        if (user == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
+
+        VoteOption option = poll.getOptions().stream()
+                .filter(o -> o.getId().equals(request.getVoteOptionId()))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Option not found"));
+
+        Vote vote = new Vote();
+        vote.setUser(user);
+        vote.setVotesOn(option);
+
+        try {
+            Vote created = pollManager.addVoteToPoll(poll, vote);
+            return created;
+        } catch (ResponseStatusException e) {
+            throw e;
         }
-        return created;
     }
 
     @PostMapping("/{pollId}/options")

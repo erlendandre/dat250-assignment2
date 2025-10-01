@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import no.hvl.dat250.assignment2.model.Poll;
 import no.hvl.dat250.assignment2.model.User;
@@ -145,40 +147,49 @@ public class PollManager {
     }
 
     public Vote addVoteToPoll(Poll poll, Vote vote) {
-        if (poll == null) {
+        if (poll == null || vote == null || vote.getUser() == null || vote.getVotesOn() == null) {
             return null;
         }
 
         Instant now = Instant.now();
+        if (poll.getPublishedAt() != null && now.isBefore(poll.getPublishedAt())) return null;
+        if (poll.getValidUntil() != null && now.isAfter(poll.getValidUntil())) return null;
 
-        if (poll.getPublishedAt() != null && now.isBefore(poll.getPublishedAt())) {
-            return null;
-        }
-
-        if (poll.getValidUntil() != null && now.isAfter(poll.getValidUntil())) {
-            return null;
-        }
+        Long voteUserId = vote.getUser().getId();
 
         if (!poll.isPublic()) {
-            User voteUser = vote.getUser();
-            if (voteUser == null || !poll.getInvitedUsers().contains(voteUser)) {
-                return null;
-            }
+            boolean invited = poll.getInvitedUsers().stream()
+                .anyMatch(u -> u.getId().equals(voteUserId));
+            if (!invited) return null; // ikke invitert
+        }
 
-            for (Vote existingVote : poll.getVotes()) {
-                if (voteUser.equals(existingVote.getUser())) {
-                    return null;
-                }
+        Vote existingVote = poll.getVotes().stream()
+            .filter(v -> v.getUser() != null && v.getUser().getId().equals(voteUserId))
+            .findFirst().orElse(null);
+
+        if (existingVote != null) {
+            if (existingVote.getVotesOn().getId().equals(vote.getVotesOn().getId())) {
+                throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "You have already voted on this option"
+                );
+            } else {
+                existingVote.getVotesOn().getVotes().remove(existingVote);
+                existingVote.setVotesOn(vote.getVotesOn());
+                existingVote.getVotesOn().getVotes().add(existingVote);
+                existingVote.setLastUpdatedAt(now);
+                return existingVote;
             }
         }
 
-        long id = votesIdSeq.incrementAndGet();
-        vote.setId(id);
+        vote.setId(votesIdSeq.incrementAndGet());
         vote.setPoll(poll);
         vote.setPublishedAt(now);
         vote.setLastUpdatedAt(now);
 
         poll.getVotes().add(vote);
+        vote.getVotesOn().getVotes().add(vote);
+
         return vote;
     }
 

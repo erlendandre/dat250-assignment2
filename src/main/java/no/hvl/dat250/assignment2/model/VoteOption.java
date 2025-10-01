@@ -30,6 +30,7 @@ public class VoteOption {
     private int presentationOrder;
 
     @OneToMany(mappedBy = "votesOn", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Vote> votes = new ArrayList<>();
 
     public VoteOption() {}

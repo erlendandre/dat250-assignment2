@@ -2,15 +2,15 @@
   import { onMount } from 'svelte';
   import { API_BASE } from '../config.js';
 
-  export let currentUser = null; // hent fra App.svelte
+  export let currentUser = null;
 
   let polls = [];
   let selectedPollId: number = null;
   let selectedPoll = null;
   let selectedOption = '';
+  let voteMessage = '';
   let loading = true;
 
-  $: selectedPoll = polls.find(p => p.id === selectedPollId);
 
   onMount(async () => {
     try {
@@ -27,6 +27,7 @@
 
         if (polls.length > 0) {
           selectedPollId = polls[0].id;
+          await fetchSelectedPoll(selectedPollId);
         }
       }
     } catch (err) {
@@ -36,78 +37,74 @@
     }
   });
 
-  // async function submitVote(option) {
-  //   if (!currentUser) {
-  //     alert('You must be logged in to vote!');
-  //     return;
-  //   }
+  async function fetchSelectedPoll(pollId: number) {
+    try {
+      const res = await fetch(`${API_BASE}/polls/${pollId}`);
+      if (!res.ok) throw new Error(`Failed to fetch poll with id ${pollId}`);
 
-  //   try {
-  //     const res = await fetch(`${API_BASE}/polls/${selectedPoll.id}/votes`, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         userId: currentUser.id,
-  //         voteOptionId: option.id
-  //       })
-  //     });
-
-  //     if (!res.ok) {
-  //       console.error('Vote not accepted', await res.text());
-  //       return;
-  //     }
-
-  //     const newVote = await res.json();
-  //     selectedPoll.votes = [...selectedPoll.votes, newVote];
-  //     selectedOption = option.caption;
-
-  //   } catch (err) {
-  //     console.error('Network error while voting', err);
-  //   }
-  // }
+      selectedPoll = await res.json();
+    } catch (err) {
+      console.error("Failed to fetch selected poll", err);
+    }
+  }
 
   async function submitVote(option) {
     if (!currentUser) {
-      alert('You must be logged in to vote!');
-      return;
+        alert('You must be logged in to vote!');
+        return;
+    }
+
+    const existingVote = selectedPoll.votes.find(v => v.user.id === currentUser.id);
+    if (existingVote && existingVote.votesOn.id === option.id) {
+        voteMessage = `You already voted for this option`;
+        return;
     }
 
     try {
-      const res = await fetch(`${API_BASE}/polls/${selectedPoll.id}/votes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: currentUser.id,
-          voteOptionId: option.id
-        })
-      });
+        const res = await fetch(`${API_BASE}/polls/${selectedPoll.id}/votes`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                userId: currentUser.id,
+                voteOptionId: option.id
+            })
+        });
 
-      if (!res.ok) {
-        console.error('Vote not accepted', await res.text());
-        return;
-      }
+        const data = await res.json();
 
-      const newVote = await res.json();
+        if (!res.ok) {
+            voteMessage = `Vote not accepted: ${data.error || data.message}`;
+            return;
+        }
 
-      newVote.voteOptionId = option.id;
+        const existingIndex = selectedPoll.votes.findIndex(v => v.user.id === currentUser.id);
+        if (existingIndex >= 0) {
+            selectedPoll.votes[existingIndex] = data;
+            voteMessage = `You changed your vote to: ${option.caption}`;
+        } else {
+            selectedPoll.votes = [...selectedPoll.votes, data];
+            voteMessage = `You voted for: ${option.caption}`;
+        }
 
-      selectedPoll.votes = [...selectedPoll.votes, newVote];
-      selectedOption = option.caption;
+        selectedOption = option.caption;
 
     } catch (err) {
       console.error('Network error while voting', err);
+      voteMessage = 'Network error while voting';
     }
   }
 
   function countVotes(optionId: number) {
-    return selectedPoll?.votes.filter(v => v.voteOptionId === optionId).length || 0;
+    return selectedPoll?.votes.filter(v => v.votesOn.id === optionId).length || 0;
   }
+
 
   function votePercentage(optionId: number) {
     const total = selectedPoll?.votes.length || 0;
     if (total === 0) return 0;
     return Math.round((countVotes(optionId) / total) * 100);
   }
+
 </script>
 
 <div class="card">
@@ -118,12 +115,17 @@
   {:else if polls.length === 0}
     <p>No polls available for you.</p>
   {:else}
-    <select bind:value={selectedPollId}>
+    <select bind:value={selectedPollId} on:change={async () => {
+      if (selectedPollId) {
+        await fetchSelectedPoll(selectedPollId);
+        selectedOption = '';
+        voteMessage = '';
+      }
+    }}>
       {#each polls as poll (poll.id)}
         <option value={poll.id}>{poll.question}</option>
       {/each}
     </select>
-
     {#if selectedPoll && selectedPoll.options.length > 0}
       <h3 style="margin-top: 1.5rem;">Options:</h3>
       <div class="options">
@@ -137,9 +139,9 @@
       </div>
     {/if}
 
-    {#if selectedOption}
+    {#if voteMessage}
       <p style="margin-top: 2rem; color: #ffcc00;">
-        You voted for: <strong>{selectedOption}</strong>
+        {voteMessage}
       </p>
     {/if}
   {/if}

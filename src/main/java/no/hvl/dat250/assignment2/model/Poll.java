@@ -5,9 +5,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -22,13 +27,15 @@ import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "polls")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Poll {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonIgnoreProperties({"created"})
     private User createdBy;
 
     @NotBlank(message = "Poll question cannot be empty")
@@ -46,7 +53,7 @@ public class Poll {
     )
     private Set<User> invitedUsers = new HashSet<>();
 
-    @OneToMany(mappedBy = "poll", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "poll", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Vote> votes = new ArrayList<>();
     
     @Size(min = 2, message = "Poll must have at least 2 options")
@@ -107,5 +114,12 @@ public class Poll {
 
         options.add(option);
         return option;
+    }
+
+    @JsonProperty("invitedUserIds")
+    public List<Long> getInvitedUserIds() {
+        return invitedUsers.stream()
+                .map(User::getId)
+                .collect(Collectors.toList());
     }
 }
