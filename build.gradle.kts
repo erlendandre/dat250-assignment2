@@ -47,13 +47,13 @@ dependencies {
 
     // Logging som Hibernate bruker under panseret
     implementation("org.jboss.logging:jboss-logging:3.5.1.Final")
-    // implementation("org.slf4j:slf4j-simple:2.0.9")
-
-
 
 
     implementation("org.hibernate.orm:hibernate-core:7.1.1.Final")
     implementation("org.jboss.logging:jboss-logging:3.6.1.Final")
+
+    // Redis
+    implementation("redis.clients:jedis:6.2.0")
 }
 
 tasks.withType<Test> {

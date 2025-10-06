@@ -11,7 +11,6 @@
   let voteMessage = '';
   let loading = true;
 
-
   onMount(async () => {
     try {
       const res = await fetch(`${API_BASE}/polls`);
@@ -38,25 +37,22 @@
   });
 
   async function fetchSelectedPoll(pollId: number) {
-    try {
-      const res = await fetch(`${API_BASE}/polls/${pollId}`);
-      if (!res.ok) throw new Error(`Failed to fetch poll with id ${pollId}`);
+    const pollRes = await fetch(`${API_BASE}/polls/${pollId}`);
+    const pollData = await pollRes.json();
 
-      selectedPoll = await res.json();
-    } catch (err) {
-      console.error("Failed to fetch selected poll", err);
-    }
+    const votesRes = await fetch(`${API_BASE}/polls/${pollId}/votes`);
+    const voteCounts = await votesRes.json();
+
+    selectedPoll = {
+        ...pollData,
+        voteCounts,
+        totalVotes: voteCounts.reduce((sum, v) => sum + v.voteCount, 0)
+    };
   }
 
   async function submitVote(option) {
     if (!currentUser) {
         alert('You must be logged in to vote!');
-        return;
-    }
-
-    const existingVote = selectedPoll.votes.find(v => v.user.id === currentUser.id);
-    if (existingVote && existingVote.votesOn.id === option.id) {
-        voteMessage = `You already voted for this option`;
         return;
     }
 
@@ -70,41 +66,26 @@
             })
         });
 
-        const data = await res.json();
-
         if (!res.ok) {
+            const data = await res.json();
             voteMessage = `Vote not accepted: ${data.error || data.message}`;
             return;
         }
 
-        const existingIndex = selectedPoll.votes.findIndex(v => v.user.id === currentUser.id);
-        if (existingIndex >= 0) {
-            selectedPoll.votes[existingIndex] = data;
-            voteMessage = `You changed your vote to: ${option.caption}`;
-        } else {
-            selectedPoll.votes = [...selectedPoll.votes, data];
-            voteMessage = `You voted for: ${option.caption}`;
-        }
-
+        await fetchSelectedPoll(selectedPoll.id);
         selectedOption = option.caption;
-
+        voteMessage = `You voted for: ${option.caption}`;
     } catch (err) {
-      console.error('Network error while voting', err);
-      voteMessage = 'Network error while voting';
+        console.error('Network error while voting', err);
+        voteMessage = 'Network error while voting';
     }
   }
 
-  function countVotes(optionId: number) {
-    return selectedPoll?.votes.filter(v => v.votesOn.id === optionId).length || 0;
-  }
-
-
-  function votePercentage(optionId: number) {
-    const total = selectedPoll?.votes.length || 0;
+  function votePercentage(optionVoteCount: number) {
+    const total = selectedPoll?.totalVotes || 0;
     if (total === 0) return 0;
-    return Math.round((countVotes(optionId) / total) * 100);
+    return Math.round((optionVoteCount / total) * 100);
   }
-
 </script>
 
 <div class="card">
@@ -126,15 +107,15 @@
         <option value={poll.id}>{poll.question}</option>
       {/each}
     </select>
+
     {#if selectedPoll && selectedPoll.options.length > 0}
       <h3 style="margin-top: 1.5rem;">Options:</h3>
       <div class="options">
-        {#each selectedPoll.options as option (option.id)}
-          {#if option.caption}
-            <button on:click={() => submitVote(option)}>
-              {option.caption} - {countVotes(option.id)} votes ({votePercentage(option.id)}%)
-            </button>
-          {/if}
+        {#each selectedPoll.options as option}
+          <button on:click={() => submitVote(option)}>
+            {option.caption} - {selectedPoll.voteCounts.find(v => v.optionCaption === option.caption)?.voteCount || 0} votes
+            ({votePercentage(selectedPoll.voteCounts.find(v => v.optionCaption === option.caption)?.voteCount || 0)}%)
+          </button>
         {/each}
       </div>
     {/if}

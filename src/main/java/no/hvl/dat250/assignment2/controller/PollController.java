@@ -1,6 +1,7 @@
 package no.hvl.dat250.assignment2.controller;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -19,12 +20,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
+import no.hvl.dat250.assignment2.dto.VoteCount;
 import no.hvl.dat250.assignment2.dto.VoteRequest;
 import no.hvl.dat250.assignment2.model.Poll;
 import no.hvl.dat250.assignment2.model.User;
 import no.hvl.dat250.assignment2.model.Vote;
 import no.hvl.dat250.assignment2.model.VoteOption;
 import no.hvl.dat250.assignment2.service.PollManager;
+
 
 
 /**
@@ -59,12 +62,10 @@ public class PollController {
     }
 
     @GetMapping("/{pollId}/votes")
-    public Collection<Vote> getVotesForPoll(@PathVariable Long pollId) {
+    public List<VoteCount> getVotesForPoll(@PathVariable Long pollId) {
         Poll poll = pollManager.getPoll(pollId);
-        if (poll == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll not found");
-        }
-        return pollManager.getVotesForPoll(poll);
+        if (poll == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll not found");
+        return pollManager.getVoteCountsForPoll(poll);
     }
 
     @GetMapping("/{pollId}/options")
@@ -76,6 +77,7 @@ public class PollController {
         return pollManager.getOptionsForPoll(poll);
     }
 
+    // Create
     @PostMapping
     public Poll createPoll(@Valid @RequestBody Poll poll) {
         if (poll.getCreatedByUser() == null) {
@@ -187,6 +189,7 @@ public class PollController {
         return option;
     }
 
+    // Delete
     @DeleteMapping("/{id}/{userId}")
     public ResponseEntity<Void> deletePoll(@PathVariable Long id, @PathVariable Long userId) {
         Poll poll = pollManager.getPoll(id);

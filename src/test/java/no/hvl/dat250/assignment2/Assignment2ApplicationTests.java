@@ -1,4 +1,4 @@
-package no.hvl.dat250.assignment2;
+// package no.hvl.dat250.assignment2;
 
 // import static org.junit.jupiter.api.Assertions.assertEquals;
 // import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -94,9 +94,9 @@ package no.hvl.dat250.assignment2;
 // 		Poll poll = new Poll();
 // 		poll.setQuestion("Pineapple on pizza?");
 // 		poll.setValidUntil(Instant.parse("2028-01-01T00:00:00Z"));
-// 		poll.setUsername("user1");
+// 		poll.setCreatedByUser(user1);
 // 		poll.setPublic(false);
-// 		poll.setInvitedUserIds(Set.of(created2.getId()));
+// 		poll.setInvitedUsers(Set.of(created2));
 
 // 		// Quick fix: legg inn to options slik at validering passerer
 // 		VoteOption dummy1 = new VoteOption();
@@ -168,7 +168,7 @@ package no.hvl.dat250.assignment2;
 // 				.body(User.class);
 
 // 		Vote invalidVote = new Vote();
-// 		invalidVote.setUserId(created3.getId());
+// 		invalidVote.setUser(created3);
 // 		invalidVote.setVoteOptionId(createdYes.getId());
 
 // 		try {
@@ -186,7 +186,7 @@ package no.hvl.dat250.assignment2;
 
 // 		// Voting on non-existing poll
 // 		Vote voteNonExistingPoll = new Vote();
-// 		voteNonExistingPoll.setUserId(created2.getId());
+// 		voteNonExistingPoll.setUser(created2);
 // 		voteNonExistingPoll.setVoteOptionId(createdYes.getId());
 // 		Long nonExistingPollId = 9999L;
 
@@ -219,7 +219,7 @@ package no.hvl.dat250.assignment2;
 // 		Poll publicPoll = new Poll();
 // 		publicPoll.setQuestion("Public poll?");
 // 		publicPoll.setValidUntil(Instant.parse("2028-01-01T00:00:00Z"));
-// 		publicPoll.setUsername("user1");
+// 		publicPoll.setCreatedByUser(user1);
 // 		publicPoll.setPublic(true);
 
 // 		// Legg til minst to alternativer
