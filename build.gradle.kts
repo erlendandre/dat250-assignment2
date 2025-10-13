@@ -54,6 +54,8 @@ dependencies {
 
     // Redis
     implementation("redis.clients:jedis:6.2.0")
+
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
 }
 
 tasks.withType<Test> {

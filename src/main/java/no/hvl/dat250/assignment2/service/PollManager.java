@@ -9,12 +9,14 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import no.hvl.dat250.assignment2.cache.PollCacheRedis;
 import no.hvl.dat250.assignment2.dto.VoteCount;
+import no.hvl.dat250.assignment2.messaging.RedisPublisher;
 import no.hvl.dat250.assignment2.model.Poll;
 import no.hvl.dat250.assignment2.model.User;
 import no.hvl.dat250.assignment2.model.Vote;
@@ -34,12 +36,14 @@ public class PollManager {
     private final AtomicLong votesIdSeq = new AtomicLong();
     private final AtomicLong voteOptionsIdSeq = new AtomicLong();
 
-    // Redis cache for votes
     private final PollCacheRedis pollCache;
+    private final RedisPublisher redisPublisher;
 
-    public PollManager() {
+    @Autowired
+    public PollManager(RedisPublisher redisPublisher) {
         UnifiedJedis jedis = new UnifiedJedis("redis://localhost:6379");
         this.pollCache = new PollCacheRedis(jedis);
+        this.redisPublisher = redisPublisher;
     }
 
     // User CRUD
@@ -89,7 +93,8 @@ public class PollManager {
         poll.setLastUpdatedAt(now);
 
         if (poll.getInvitedUsers() == null) poll.setInvitedUsers(new HashSet<>());
-        if (!poll.isPublic() && poll.getCreatedByUser() != null) poll.getInvitedUsers().add(poll.getCreatedByUser());
+        if (!poll.isPublic() && poll.getCreatedByUser() != null)
+            poll.getInvitedUsers().add(poll.getCreatedByUser());
 
         if (poll.getOptions() != null) {
             for (VoteOption option : poll.getOptions()) {
@@ -101,6 +106,16 @@ public class PollManager {
 
         polls.put(id, poll);
         pollCache.invalidatePoll(id);
+
+        // Publiser event til Redis
+        Map<String, Object> event = new HashMap<>();
+        event.put("type", "NEW_POLL");
+        event.put("pollId", poll.getId());
+        event.put("question", poll.getQuestion());
+        redisPublisher.publish(event);
+
+        System.out.println("Published NEW_POLL event to redis: " + event);
+
         return poll;
     }
 
@@ -148,6 +163,16 @@ public class PollManager {
         if (poll != null && vote != null && vote.getUser() != null && vote.getVotesOn() != null) {
             created = addVoteToPollInternal(poll, vote);
             pollCache.incrementVote(poll.getId(), vote.getVotesOn().getCaption());
+
+            // Publiser event til Redis
+            Map<String, Object> event = new HashMap<>();
+            event.put("type", "NEW_VOTE");
+            event.put("pollId", poll.getId());
+            event.put("option", vote.getVotesOn().getCaption());
+            event.put("userId", vote.getUser().getId());
+            redisPublisher.publish(event);
+
+            System.out.println("Published NEW_VOTE event to redis: " + event);
         }
         return created;
     }
