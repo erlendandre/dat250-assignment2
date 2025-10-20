@@ -24,5 +24,4 @@ Starts the backend locally on http://localhost:8080 without Docker.
 ./gradlew dockerUp
 ```
 
-Builds and starts both backend and Redis containers using Docker Compose.
-Access the app at http://localhost:8080.
+Builds and starts both backend and Redis containers using Docker Compose. Access the app at http://localhost:8080.
