@@ -41,7 +41,13 @@ public class PollManager {
 
     @Autowired
     public PollManager(RedisPublisher redisPublisher) {
-        UnifiedJedis jedis = new UnifiedJedis("redis://localhost:6379");
+        String host = System.getenv().getOrDefault("SPRING_REDIS_HOST",
+                    System.getenv().getOrDefault("SPRING_DATA_REDIS_HOST", "localhost"));
+        int port = Integer.parseInt(System.getenv().getOrDefault("SPRING_REDIS_PORT",
+                    System.getenv().getOrDefault("SPRING_DATA_REDIS_PORT", "6379")));
+
+        UnifiedJedis jedis = new UnifiedJedis("redis://" + host + ":" + port);
+
         this.pollCache = new PollCacheRedis(jedis);
         this.redisPublisher = redisPublisher;
     }

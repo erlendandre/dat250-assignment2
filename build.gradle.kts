@@ -65,7 +65,7 @@ tasks.withType<Test> {
 node {
     version.set("22.12.0")
     npmVersion.set("10.9.0")
-    download.set(true)
+    download.set(false)
     nodeProjectDir.set(file("frontend"))
 }
 
@@ -95,4 +95,18 @@ tasks.named("bootRun") {
 
 tasks.named("processResources") {
     dependsOn("copyWebApp")
+}
+
+tasks.register("dockerDown", Exec::class) {
+    commandLine("docker", "compose", "down", "-v")
+}
+
+tasks.register("dockerBuild", Exec::class) {
+    dependsOn("dockerDown")
+    commandLine("docker", "compose", "build", "--no-cache")
+}
+
+tasks.register("dockerUp", Exec::class) {
+    dependsOn("dockerBuild")
+    commandLine("docker", "compose", "up")
 }

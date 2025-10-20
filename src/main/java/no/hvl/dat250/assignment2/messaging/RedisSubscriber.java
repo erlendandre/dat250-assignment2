@@ -55,7 +55,6 @@ public class RedisSubscriber implements MessageListener {
 
     private void handleNewPoll(Map<String, Object> data) {
         System.out.println("Received NEW_POLL event for pollId = " + data.get("pollId"));
-        // Du kan utvide dette om du ønsker å gjøre noe spesielt
     }
 
     private void handleNewVote(Map<String, Object> data) {
