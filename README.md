@@ -17,10 +17,7 @@ Runs the Svelte app on http://localhost:5173
 ./gradlew bootRun
 ```
 
-Starts the backend locally on localhost:8080 without Docker.
-
-Builds and starts both backend and Redis containers using Docker Compose.
-Access the app at http://localhost:8080.
+Starts the backend locally on http://localhost:8080 without Docker.
 
 ### 3. Full stack with Docker
 ```
