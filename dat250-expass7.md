@@ -19,7 +19,10 @@ Defines two services on a shared network:
 Environment variables: `SPRING_DATA_REDIS_HOST=redis` and `SPRING_DATA_REDIS_PORT=6379`
 
 
-
 ## Code Changes
 - **RedisConfig**: removed custom `RedisConnectionFactory` (now uses Spring Boot’s auto-config)
 - **PollManager**: connects dynamically to Redis using environment variables or localhost fallback
+
+
+## GitHub Actions CI – Docker build and test
+The workflow `.github/workflows/docker.yml` automatically builds and tests the application on each push or pull request to `main`.
